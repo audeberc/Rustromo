@@ -22,6 +22,7 @@ func _ready():
 	gameplay = $Gameplay
 	
 	# Add rooms to the map
+	var airlock = map.add_room("Airlock", "The airlock of the ship.",  0.495,0.9)
 	var cockpit = map.add_room("Cockpit", "The control center of the ship.", 0.13, 0.3)
 	var computer_room = map.add_room("Computer Room", "Where the ship's computer is located.",0.2952,0.06)
 	var dinner_room = map.add_room("Dinner Room", "Where the crew eats their meals.",0.475,0.31)
@@ -29,7 +30,6 @@ func _ready():
 	var medical = map.add_room("Medical", "The medical bay of the ship.", 0.75,0.615)
 	var hub2_top_floor = map.add_room("Hub 2 Top Floor", "The top floor of Hub 2.", 0.486,0.615)
 	var barracks = map.add_room("Barracks", "Where the crew sleeps.", 0.2,0.615)
-	var airlock = map.add_room("Airlock", "The airlock of the ship.",  0.495,0.9)
 	var hallway1 = map.add_room("Hallway (Cockpit to Computer Room)", "A connecting hallway from Cockpit to Computer Room.", 0.2952,0.21)
 	var hallway2 = map.add_room("Hallway (Cockpit to Dinner Room)", "A connecting hallway from Cockpit to Dinner Room.", 0.3, 0.3)
 	var hallway3 = map.add_room("Hallway (Dinner Room to Hub 1 Top Floor)", "A connecting hallway from Dinner Room to Hub 1 Top Floor.", 0.6,0.31)
@@ -56,6 +56,8 @@ func _ready():
 	# Move the player to room 1
 	player.move_to_room(cockpit)
 	alien.move_to_room(airlock)
+	
+	player.add_item('flamethrower', 5	)
 
 	# Display the initial room info
 	display_room_info()

@@ -45,6 +45,22 @@ impl Gameplay {
                     let instruction = format!("move_to {}", room_index);
                     movements.push(&instruction);
                 }
+                let items = player.get_items();
+                for (key, _) in items.iter_shared() {
+                    if key.to_string() == "flamethrower" {
+                        let alien_room = alien.get_current_room_index();
+                        let player_room = player.get_current_room_index();
+                        let distant_rooms = map.get_rooms_within_distance(player_room as usize, 2);
+
+                        if distant_rooms.contains(&(alien_room as usize)) {
+                            let instruction = format!("use_item {}", key.to_string());
+                            movements.push(&instruction);
+                        }
+                    } else {
+                        let instruction = format!("use_item {}", key.to_string());
+                        movements.push(&instruction);
+                    }
+                }
                 
             }
             movements.push("end_turn");
@@ -101,9 +117,44 @@ impl Gameplay {
                     player.set_morale(morale);
                     player.end_turn();
                 }
-            }}
+            }
+        }
+        else if instruction.starts_with("use_item") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                self.use_item(player, alien, parts[1].to_string());
+            }
+        }
 
 
+    }
+
+    fn use_item(&self, mut player: GdMut<'_, Player>, mut alien: GdMut<'_, Player>, item: String) {
+        if player.get_remaining_actions() > 0 {
+            if let Some(uses) = player.get_item_uses_mut().get_mut(&item) {
+                match item.as_str() {
+                    "flamethrower" => {
+                        alien.move_to_room(0); // Move alien to original spot
+                        godot_print!("Used flamethrower on alien!");
+                    }
+                    "grapple_gun" => {
+                        // Implement grapple gun logic here
+                    }
+                    _ => godot_print!("Unknown item"),
+                }
+
+                *uses -= 1;
+                if *uses <= 0 {
+                    player.get_item_slots_mut().retain(|i| i != &item);
+                    godot_print!("Item {} is out of uses", item);
+                }
+                player.decrease_remaining_actions(1);
+            } else {
+                godot_print!("Item not found in inventory");
+            }
+        } else {
+            godot_print!("Out of actions");
+        }
     }
 
     // Moves the alien towards the player by the specified number of actions
@@ -179,6 +230,15 @@ impl Gameplay {
                 }
             }
             "Invalid move instruction".to_string()
+        }
+
+        else if instruction.starts_with("use_item") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                return format!("Use item \"{}\"", parts[1]);
+            }
+            "Invalid item instruction".to_string()
+            
         }
         
         else {
