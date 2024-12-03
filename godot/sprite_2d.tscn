@@ -1,0 +1,129 @@
+[gd_scene load_steps=11 format=3 uid="uid://lg01vp1johb"]
+
+[ext_resource type="Shader" path="res://CRT.gdshader" id="1_xgf11"]
+[ext_resource type="FontFile" uid="uid://djba61qq3kdxg" path="res://Berthold City Light Regular.otf" id="2_ja0dw"]
+[ext_resource type="Script" path="res://test.gd" id="2_twyg4"]
+[ext_resource type="Texture2D" uid="uid://dp4imunjqp083" path="res://test_map.png" id="3_kqntj"]
+[ext_resource type="Script" path="res://map_background.gd" id="3_mnldi"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_g1xu6"]
+
+[sub_resource type="Theme" id="Theme_xi50l"]
+default_font = ExtResource("2_ja0dw")
+default_font_size = 50
+
+[sub_resource type="Theme" id="Theme_mrlvi"]
+default_font = ExtResource("2_ja0dw")
+default_font_size = 40
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_fqiiy"]
+shader = ExtResource("1_xgf11")
+shader_parameter/resolution = Vector2(1500, 1500)
+shader_parameter/scan_line_amount = 0.874
+shader_parameter/warp_amount = 0.5
+shader_parameter/noise_amount = 0.035
+shader_parameter/interference_amount = 0.332
+shader_parameter/grille_amount = 0.1
+shader_parameter/grille_size = 1.0
+shader_parameter/vignette_amount = 0.876
+shader_parameter/vignette_intensity = 0.4
+shader_parameter/aberation_amount = 0.644
+shader_parameter/roll_line_amount = 0.3
+shader_parameter/roll_speed = 1.0
+shader_parameter/scan_line_strength = -4.304
+shader_parameter/pixel_strength = -1.648
+shader_parameter/glow_intensity = 1.3
+shader_parameter/glow_threshold = 0.17
+shader_parameter/blur_amount = 5.0
+
+[sub_resource type="ViewportTexture" id="ViewportTexture_1uty1"]
+viewport_path = NodePath("SubViewportContainer/SubViewport")
+
+[node name="Control2" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+material = SubResource("ShaderMaterial_g1xu6")
+custom_minimum_size = Vector2(2304, 1236)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(2304, 1236)
+render_target_update_mode = 4
+
+[node name="ColorRect" type="ColorRect" parent="SubViewportContainer/SubViewport"]
+custom_minimum_size = Vector2(1152, 618)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0162012, 0.0847526, 0.0288808, 1)
+
+[node name="Control" type="Control" parent="SubViewportContainer/SubViewport"]
+z_index = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_twyg4")
+
+[node name="Gameplay" type="Gameplay" parent="SubViewportContainer/SubViewport/Control"]
+
+[node name="GameMap" type="GameMap" parent="SubViewportContainer/SubViewport/Control"]
+
+[node name="MapBackground" type="TextureRect" parent="SubViewportContainer/SubViewport/Control"]
+custom_minimum_size = Vector2(10, 0)
+layout_mode = 1
+offset_left = 1450.0
+offset_top = 600.0
+offset_right = 1950.0
+offset_bottom = 1100.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_kqntj")
+expand_mode = 1
+
+[node name="MapOverlay" type="Control" parent="SubViewportContainer/SubViewport/Control/MapBackground"]
+layout_mode = 1
+anchors_preset = 0
+script = ExtResource("3_mnldi")
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="SubViewportContainer/SubViewport/Control"]
+layout_mode = 0
+offset_left = 80.0
+offset_top = 90.0
+offset_right = 120.0
+offset_bottom = 152.0
+theme_override_constants/separation = 100
+
+[node name="Label" type="Label" parent="SubViewportContainer/SubViewport/Control/VBoxContainer2"]
+layout_mode = 2
+theme = SubResource("Theme_xi50l")
+theme_override_colors/font_color = Color(0.176867, 0.7, 0.168, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SubViewportContainer/SubViewport/Control/VBoxContainer2"]
+layout_mode = 2
+theme = SubResource("Theme_mrlvi")
+alignment = 1
+
+[node name="SubViewport" type="TextureRect" parent="."]
+z_index = 1
+material = SubResource("ShaderMaterial_fqiiy")
+custom_minimum_size = Vector2(1152, 618)
+layout_mode = 0
+offset_right = 1152.0
+offset_bottom = 618.0
+texture = SubResource("ViewportTexture_1uty1")

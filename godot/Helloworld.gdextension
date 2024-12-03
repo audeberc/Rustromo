@@ -1,0 +1,8 @@
+[configuration]
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.1
+reloadable = true
+
+[libraries]
+arm64.debug =            "res://../rust/target/aarch64-apple-darwin/debug/librust_project.dylib"
+arm64.release =          "res://../rust/target/aarch64-apple-darwin/release/librust_project.dylib"
