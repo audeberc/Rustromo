@@ -32,6 +32,8 @@ func _ready():
 	replay_button = $ReplayButton
 	
 	# Add rooms to the map - top floor- 
+	lair = map.add_room("Lair", "The monster is nesting here.",0.738, 0.875)
+	
 	var airlock = map.add_room("Airlock", "The airlock of the ship.", 0.448,0.544)
 	cockpit = map.add_room("Cockpit", "The control center of the ship.",0.118,0.190)
 	var computer_room = map.add_room("Computer Room", "Where the ship's computer is located.",0.290, 0.049)
@@ -50,7 +52,6 @@ func _ready():
 	# Add rooms to the map - bottom floor- 
 	var hub1_bottom_floor = map.add_room("Hub 1 Bottom Floor", "The bottom floor of Hub 1.",0.736, 0.692)
 	var engines = map.add_room("Engines room", "The engines control room.",0.918, 0.695)
-	lair = map.add_room("Lair", "The monster is nesting here.",0.738, 0.875)
 	var hub2_bottom_floor = map.add_room("Hub 2 Bottom Floor", "The bottom floor of Hub 2.",0.453, 0.875)
 	var storage = map.add_room("Storage", "Storage room of the ship.",0.215, 0.874 )
 	var ladder_1 = map.add_room("Ladder 1", "Ladder of Hub 1.", 0.908, 0.441)
@@ -92,8 +93,9 @@ func _ready():
 	player.move_to_room(cockpit)
 	alien.move_to_room(lair)
 	
-	player.add_item('flamethrower', 5	)
-
+	player.add_item('flamethrower', 1	)
+		
+	player.add_item('flare', 2	)
 	# Display the initial room info
 	display_room_info()
 

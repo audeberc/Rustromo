@@ -106,7 +106,7 @@ impl GameMap {
         }
     }
 
-    pub fn get_rooms_within_distance(&self, start_room: usize, distance: usize) -> Vec<usize> {
+    pub fn get_rooms_within_distance(&self, start_room: usize, min_distance: usize, max_distance: usize) -> Vec<usize> {
         let mut visited = vec![false; self.rooms.len()];
         let mut queue = std::collections::VecDeque::new();
         let mut result = Vec::new();
@@ -115,9 +115,10 @@ impl GameMap {
         visited[start_room] = true;
 
         while let Some((current_room, current_distance)) = queue.pop_front() {
-            if current_distance == distance {
+            if current_distance >= min_distance && current_distance <= max_distance {
                 result.push(current_room);
-            } else if current_distance < distance {
+            }
+            if current_distance < max_distance {
                 for neighbor in self.get_connected_rooms(current_room as i32) {
                     if !visited[neighbor as usize] {
                         visited[neighbor as usize] = true;
