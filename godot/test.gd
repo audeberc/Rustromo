@@ -21,23 +21,36 @@ func _ready():
 	map_overlay = $MapBackground/MapOverlay
 	gameplay = $Gameplay
 	
-	# Add rooms to the map
-	var airlock = map.add_room("Airlock", "The airlock of the ship.",  0.495,0.9)
-	var cockpit = map.add_room("Cockpit", "The control center of the ship.", 0.13, 0.3)
-	var computer_room = map.add_room("Computer Room", "Where the ship's computer is located.",0.2952,0.06)
-	var dinner_room = map.add_room("Dinner Room", "Where the crew eats their meals.",0.475,0.31)
-	var hub1_top_floor = map.add_room("Hub 1 Top Floor", "The top floor of Hub 1.", 0.75,0.31)
-	var medical = map.add_room("Medical", "The medical bay of the ship.", 0.75,0.615)
-	var hub2_top_floor = map.add_room("Hub 2 Top Floor", "The top floor of Hub 2.", 0.486,0.615)
-	var barracks = map.add_room("Barracks", "Where the crew sleeps.", 0.2,0.615)
-	var hallway1 = map.add_room("Hallway (Cockpit to Computer Room)", "A connecting hallway from Cockpit to Computer Room.", 0.2952,0.21)
-	var hallway2 = map.add_room("Hallway (Cockpit to Dinner Room)", "A connecting hallway from Cockpit to Dinner Room.", 0.3, 0.3)
-	var hallway3 = map.add_room("Hallway (Dinner Room to Hub 1 Top Floor)", "A connecting hallway from Dinner Room to Hub 1 Top Floor.", 0.6,0.31)
-	var hallway4 = map.add_room("Hallway (Hub 1 Top Floor to Medical)", "A connecting hallway from Hub 1 Top Floor to Medical.", 0.75, 0.45)
-	var hallway5 = map.add_room("Hallway (Medical to Hub 2 Top Floor)", "A connecting hallway from Medical to Hub 2 Top Floor.", 0.67,0.615)
-	var hallway6 = map.add_room("Hallway (Hub 2 Top Floor to Barracks)", "A connecting hallway from Hub 2 Top Floor to Barracks.", 0.34,0.615)
-	var hallway7 = map.add_room("Hallway (Hub 2 Top Floor to Airlock)", "A connecting hallway from Hub 2 Top Floor to Airlock.", 0.485,0.78)
-
+	# Add rooms to the map - top floor- 
+	var airlock = map.add_room("Airlock", "The airlock of the ship.", 0.448,0.544)
+	var cockpit = map.add_room("Cockpit", "The control center of the ship.",0.118,0.190)
+	var computer_room = map.add_room("Computer Room", "Where the ship's computer is located.",0.290, 0.049)
+	var dinner_room = map.add_room("Dinner Room", "Where the crew eats their meals.",0.453, 0.196)
+	var hub1_top_floor = map.add_room("Hub 1 Top Floor", "The top floor of Hub 1.", 0.738, 0.191)
+	var medical = map.add_room("Medical", "The medical bay of the ship.", 0.741,0.371)
+	var hub2_top_floor = map.add_room("Hub 2 Top Floor", "The top floor of Hub 2.",0.453, 0.371)
+	var barracks = map.add_room("Barracks", "Where the crew sleeps.", 0.213, 0.372)
+	var hallway1 = map.add_room("Hallway (Cockpit to Computer Room)", "A connecting hallway from Cockpit to Computer Room.", 0.290, 0.134)
+	var hallway2 = map.add_room("Hallway (Cockpit to Dinner Room)", "A connecting hallway from Cockpit to Dinner Room.", 0.290, 0.190)
+	var hallway3 = map.add_room("Hallway (Dinner Room to Hub 1 Top Floor)", "A connecting hallway from Dinner Room to Hub 1 Top Floor.", 0.594, 0.191)
+	var hallway4 = map.add_room("Hallway (Hub 1 Top Floor to Medical)", "A connecting hallway from Hub 1 Top Floor to Medical.",0.738, 0.280)
+	var hallway5 = map.add_room("Hallway (Medical to Hub 2 Top Floor)", "A connecting hallway from Medical to Hub 2 Top Floor.",0.592, 0.372)
+	var hallway6 = map.add_room("Hallway (Hub 2 Top Floor to Barracks)", "A connecting hallway from Hub 2 Top Floor to Barracks.",0.332, 0.372)
+	var hallway7 = map.add_room("Hallway (Hub 2 Top Floor to Airlock)", "A connecting hallway from Hub 2 Top Floor to Airlock.", 0.450, 0.463)
+	# Add rooms to the map - bottom floor- 
+	var hub1_bottom_floor = map.add_room("Hub 1 Bottom Floor", "The bottom floor of Hub 1.",0.736, 0.692)
+	var engines = map.add_room("Engines room", "The engines control room.",0.918, 0.695)
+	var lair = map.add_room("Lair", "The monster is nesting here.",0.738, 0.875)
+	var hub2_bottom_floor = map.add_room("Hub 2 Bottom Floor", "The bottom floor of Hub 2.",0.453, 0.875)
+	var storage = map.add_room("Storage", "Storage room of the ship.",0.215, 0.874 )
+	var ladder_1 = map.add_room("Ladder 1", "Ladder of Hub 1.", 0.908, 0.441)
+	var ladder_2 = map.add_room("Ladder 2", "Ladder of Hub 2.", 0.557, 0.627)
+	var hallway8 = map.add_room("Hallway (Hub 1 Bottom Floor to Engines)", "A connecting hallway from Hub 1 Bottom Floor to Engines.",0.839, 0.691)
+	var hallway9 = map.add_room("Hallway (Hub 1 Bottom Floor to Lair)", "A connecting hallway from Hub 1 Bottom Floor to Lair.", 0.735, 0.776)
+	var hallway10 = map.add_room("Hallway (Lair to Hub 2 Bottom Floor)", "A connecting hallway from Lair to Hub 2 Bottom Floor.", 0.581, 0.872)
+	var hallway11 = map.add_room("Hallway (Hub 2 Bottom Floor to Storage)", "A connecting hallway from Hub 2 Bottom Floor to Storage.", 0.340, 0.874)
+	
+	
 	# Connect rooms through hallways
 	map.connect_rooms(cockpit, hallway1)
 	map.connect_rooms(hallway1, computer_room)
@@ -53,9 +66,21 @@ func _ready():
 	map.connect_rooms(hallway6, barracks)
 	map.connect_rooms(hub2_top_floor, hallway7)
 	map.connect_rooms(hallway7, airlock)
+	map.connect_rooms(hub1_bottom_floor, hallway8)
+	map.connect_rooms(hallway8, engines)
+	map.connect_rooms(hub1_bottom_floor, hallway9)
+	map.connect_rooms(hallway9, lair)
+	map.connect_rooms(lair, hallway10)
+	map.connect_rooms(hallway10, hub2_bottom_floor)
+	map.connect_rooms(hub2_bottom_floor, hallway11)
+	map.connect_rooms(hallway11, storage)
+	map.connect_rooms(hub1_top_floor, ladder_1)
+	map.connect_rooms(hub1_bottom_floor, ladder_1)
+	map.connect_rooms(hub2_top_floor, ladder_2)
+	map.connect_rooms(hub2_bottom_floor, ladder_2)
 	# Move the player to room 1
 	player.move_to_room(cockpit)
-	alien.move_to_room(airlock)
+	alien.move_to_room(lair)
 	
 	player.add_item('flamethrower', 5	)
 

@@ -87,10 +87,10 @@ script = ExtResource("2_twyg4")
 [node name="MapBackground" type="TextureRect" parent="SubViewportContainer/SubViewport/Control"]
 custom_minimum_size = Vector2(10, 0)
 layout_mode = 1
-offset_left = 1450.0
-offset_top = 600.0
-offset_right = 1950.0
-offset_bottom = 1100.0
+offset_left = 1500.0
+offset_top = 300.0
+offset_right = 2052.0
+offset_bottom = 1138.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_kqntj")
