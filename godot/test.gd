@@ -9,21 +9,31 @@ var selected_move_index = 0
 var possible_movements = []  
 var map_overlay
 var gameplay
+var cockpit
+var lair
+var game_over_label
+var replay_button
+var game_over = false
+var map_background 
 
 func _ready():
 	player = Player.new()
-	player.initialize(3, 0, 4,100.0) 
+	player.initialize(3, 0, 4, 100.0) 
 	alien = Player.new()
-	alien.initialize(100, 0, 4,100.0) 
+	alien.initialize(100, 0, 4, 100.0) 
 	map = $GameMap  
 	label = $VBoxContainer2/Label   
 	room_options_container = $VBoxContainer2/VBoxContainer
 	map_overlay = $MapBackground/MapOverlay
+	map_background = $MapBackground
+
 	gameplay = $Gameplay
+	game_over_label = $GameOverLabel
+	replay_button = $ReplayButton
 	
 	# Add rooms to the map - top floor- 
 	var airlock = map.add_room("Airlock", "The airlock of the ship.", 0.448,0.544)
-	var cockpit = map.add_room("Cockpit", "The control center of the ship.",0.118,0.190)
+	cockpit = map.add_room("Cockpit", "The control center of the ship.",0.118,0.190)
 	var computer_room = map.add_room("Computer Room", "Where the ship's computer is located.",0.290, 0.049)
 	var dinner_room = map.add_room("Dinner Room", "Where the crew eats their meals.",0.453, 0.196)
 	var hub1_top_floor = map.add_room("Hub 1 Top Floor", "The top floor of Hub 1.", 0.738, 0.191)
@@ -40,7 +50,7 @@ func _ready():
 	# Add rooms to the map - bottom floor- 
 	var hub1_bottom_floor = map.add_room("Hub 1 Bottom Floor", "The bottom floor of Hub 1.",0.736, 0.692)
 	var engines = map.add_room("Engines room", "The engines control room.",0.918, 0.695)
-	var lair = map.add_room("Lair", "The monster is nesting here.",0.738, 0.875)
+	lair = map.add_room("Lair", "The monster is nesting here.",0.738, 0.875)
 	var hub2_bottom_floor = map.add_room("Hub 2 Bottom Floor", "The bottom floor of Hub 2.",0.453, 0.875)
 	var storage = map.add_room("Storage", "Storage room of the ship.",0.215, 0.874 )
 	var ladder_1 = map.add_room("Ladder 1", "Ladder of Hub 1.", 0.908, 0.441)
@@ -94,14 +104,23 @@ func _ready():
 	map_overlay.update_current_room_coordinates(current_room_coordinates[0], current_room_coordinates[1])
 	map_overlay.update_alien_coordinates(alien_room_coordinates[0], alien_room_coordinates[1])
 
+	# Hide game over elements initially
+	game_over_label.visible = false
+	replay_button.visible = false
+	replay_button.connect("pressed", Callable(self, "_on_replay_button_pressed"))
+
 func _process(delta):
-	# Handle input for selecting rooms
-	if Input.is_action_just_pressed("ui_down"):
-		change_selection(1)
-	elif Input.is_action_just_pressed("ui_up"):
-		change_selection(-1)
-	elif Input.is_action_just_pressed("ui_accept"):
-		move_to_selected_room()
+	if game_over:
+		if Input.is_action_just_pressed("ui_accept"):
+			_on_replay_button_pressed()
+	else:
+		# Handle input for selecting rooms
+		if Input.is_action_just_pressed("ui_down"):
+			change_selection(1)
+		elif Input.is_action_just_pressed("ui_up"):
+			change_selection(-1)
+		elif Input.is_action_just_pressed("ui_accept"):
+			move_to_selected_room()
 
 # Update the displayed room info and options
 func display_room_info():
@@ -139,12 +158,45 @@ func change_selection(direction):
 
 # Move the player to the selected room
 func move_to_selected_room():
-	
-	gameplay.handle_selected_item(map, player, alien, possible_movements[selected_move_index])
+	var result = gameplay.handle_selected_item(map, player, alien, possible_movements[selected_move_index])
+	if result == "game_over":
+		_on_game_over()
 	selected_move_index = 0
 	display_room_info()
-
 
 # Utility function: Wraps the selection index around the list
 func wrap(value, min_value, max_value):
 	return (value - min_value) % (max_value - min_value) + min_value
+
+func _on_game_over():
+	game_over_label.visible = true
+	replay_button.visible = true
+	label.visible = false
+	room_options_container.visible = false
+	map_overlay.visible = false
+	map_background.visible = false
+
+	game_over = true
+
+func _on_replay_button_pressed():
+	game_over_label.visible = false
+	replay_button.visible = false
+	game_over = false
+	label.visible = true
+	room_options_container.visible = true
+	map_overlay.visible = true
+	map_background.visible = true
+	reset_game()
+
+func reset_game():
+	player.initialize(3, 0, 4, 100.0)
+	alien.initialize(100, 0, 4, 100.0)
+	player.move_to_room(cockpit)
+	alien.move_to_room(lair)
+	player.add_item('flamethrower', 5)
+	display_room_info()
+	selected_move_index = 0
+	var current_room_coordinates = map.get_room_coordinates(player.get_current_room_index())
+	var alien_room_coordinates = map.get_room_coordinates(alien.get_current_room_index())
+	map_overlay.update_current_room_coordinates(current_room_coordinates[0], current_room_coordinates[1])
+	map_overlay.update_alien_coordinates(alien_room_coordinates[0], alien_room_coordinates[1])

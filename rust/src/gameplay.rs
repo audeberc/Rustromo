@@ -84,7 +84,7 @@ impl Gameplay {
 
     // Handles the selected item based on the instruction provided by Godot
     #[func]
-    fn handle_selected_item(&self, map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) {
+    fn handle_selected_item(&self, map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) -> String {
         let map = map.bind();
         let mut player = player.bind_mut();
         let mut alien = alien.bind_mut();
@@ -115,7 +115,12 @@ impl Gameplay {
                     player.move_to_room(room_index.try_into().unwrap());
                     let morale = player.get_morale() - 10.0;
                     player.set_morale(morale);
-                    player.end_turn();
+                    if morale <= 0.0 {
+                        godot_print!("GAME OVER: Player's morale reached 0");
+                        return "game_over".to_string();
+                    } else {
+                        player.end_turn();
+                    }
                 }
             }
         }
@@ -126,7 +131,7 @@ impl Gameplay {
             }
         }
 
-
+        "continue".to_string()
     }
 
     fn use_item(&self, mut player: GdMut<'_, Player>, mut alien: GdMut<'_, Player>, item: String) {
