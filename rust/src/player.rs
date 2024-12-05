@@ -51,6 +51,12 @@ impl Player {
     }
 
     #[func]
+    pub fn get_scraps(&self) -> i32 {
+        self.scraps
+    }
+
+
+    #[func]
     pub fn end_turn(&mut self) {
         godot_print!("Reseting turn");
         self.remaining_actions = self.actions_per_turn;

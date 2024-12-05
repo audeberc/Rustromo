@@ -3,6 +3,7 @@ use std::collections::{HashMap, VecDeque};
 
 use crate::map::GameMap;
 use crate::player::Player;
+use rand;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -72,7 +73,13 @@ impl Gameplay {
                         movements.push(&instruction);
                     }
                 }
-                
+                // Add option to pick up scrap tokens
+                let current_room_index = player.get_current_room_index();
+                let scrap_tokens = map.get_scrap_tokens_in_room(current_room_index);
+                if scrap_tokens > 0 {
+                    let instruction = format!("pick_up_scrap {}", scrap_tokens);
+                    movements.push(&instruction);
+                }
             }
             movements.push("end_turn");
         }
@@ -89,24 +96,45 @@ impl Gameplay {
         info.push_str(&format!("Player's current room: {}\n", map.get_room_info(player.get_current_room_index())));
         info.push_str(&format!("Remaining actions: {}\n", player.get_remaining_actions()));
         info.push_str(&format!("Morale: {}\n", player.get_morale()));
+        info.push_str(&format!("Scrap tokens: {}\n", player.get_scraps()));
+
+        let items = player.get_items();
+        info.push_str("Inventory:\n");
+        for (key, value) in items.iter_shared() {
+            info.push_str(&format!("{}: {} uses\n", key.to_string(), value.to_variant().to::<i32>()));
+        }
+
         info
     }
 
     // Handles the selected item based on the instruction provided by Godot
     #[func]
-    fn handle_selected_item(&self, map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) -> String {
-        let map = map.bind();
+    fn handle_selected_item(&self, mut map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) -> String {
+        let mut map = map.bind_mut();
         let mut player = player.bind_mut();
         let mut alien = alien.bind_mut();
 
+    
         if instruction == "end_turn" || player.get_remaining_actions() == 0 {
             // Handle end turn logic
             godot_print!("End Turn selected");
 
             player.end_turn(); // Reset actions for the next turn
             alien.end_turn();
-            self.move_alien(map, player, alien, 1);
-        } else if instruction.starts_with("move_to") {
+            // Pick a random number of steps for the alien to take
+            let movement_range_categories = [1, 1, 1, 2, 2, 3];
+            let steps = movement_range_categories[rand::random::<usize>() % movement_range_categories.len()];
+            self.move_alien(&map, &mut player, &mut alien, steps);
+
+            // Place scrap tokens in the current room
+            let scrap_amount_category = [1, 1, 1, 2, 2, 3];
+            let scrap_amount =  scrap_amount_category[rand::random::<usize>() % scrap_amount_category.len()];
+            
+            map.add_scrap_to_room(player.get_current_room_index(), scrap_amount);
+            godot_print!("Placed {} scrap tokens in room {}", scrap_amount, player.get_current_room_index());
+        }
+
+        else if instruction.starts_with("move_to") {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
                 if let Ok(room_index) = parts[1].parse::<usize>() {
@@ -120,10 +148,13 @@ impl Gameplay {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
                 if let Ok(room_index) = parts[1].parse::<usize>() {
-    
                     godot_print!("Flee to room {}", room_index);
+                    player.end_turn(); // recharge the actions to make sure fleeing is possible
                     player.move_to_room(room_index.try_into().unwrap());
-                    let morale = player.get_morale() - 10.0;
+                    // Pick morale damage from predefined categories
+                    let morale_damage_categories = [10.0, 10.0, 10.0, 15.0, 20.0, 25.0];
+                    let morale_damage = morale_damage_categories[rand::random::<usize>() % morale_damage_categories.len()];
+                    let morale = player.get_morale() - morale_damage;
                     player.set_morale(morale);
                     if morale <= 0.0 {
                         godot_print!("GAME OVER: Player's morale reached 0");
@@ -137,18 +168,36 @@ impl Gameplay {
         else if instruction.starts_with("use_item") {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
-                self.use_item(player, alien, parts[1].to_string(), None);
+                self.use_item(&mut player, &mut alien, parts[1].to_string(), None);
             } else if parts.len() == 3 {
                 if let Ok(room_index) = parts[2].parse::<usize>() {
-                    self.use_item(player, alien, parts[1].to_string(), Some(room_index));
+                    self.use_item(&mut player, &mut alien, parts[1].to_string(), Some(room_index));
+                }
+            }
+            player.decrease_remaining_actions(1); // Remove 1 act by using item
+        }
+      
+        else if instruction.starts_with("pick_up_scrap") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                if let Ok(amount) = parts[1].parse::<i32>() {
+                    let current_room_index = player.get_current_room_index();
+                    if map.remove_scrap_from_room(current_room_index, amount) {
+                        player.add_scrap(amount);
+                        godot_print!("Picked up {} scrap tokens", amount);
+                        player.decrease_remaining_actions(1);
+                    } else {
+                        godot_print!("Not enough scrap tokens in the room");
+                    }
                 }
             }
         }
 
+
         "continue".to_string()
     }
 
-    fn use_item(&self, mut player: GdMut<'_, Player>, mut alien: GdMut<'_, Player>, item: String, room: Option<usize>) {
+    fn use_item(&self, player: &mut GdMut<'_, Player>, alien: &mut GdMut<'_, Player>, item: String, room: Option<usize>) {
         if player.get_remaining_actions() > 0 {
             if let Some(uses) = player.get_item_uses_mut().get_mut(&item) {
                 match item.as_str() {
@@ -182,7 +231,7 @@ impl Gameplay {
     }
 
     // Moves the alien towards the player by the specified number of actions
-    fn move_alien(&self, map: GdRef<'_, GameMap>, player: GdMut<'_, Player>, mut alien: GdMut<'_, Player>, actions: i32) {
+    fn move_alien(&self, map: &GdMut<'_, GameMap>, player: &mut GdMut<'_, Player>, alien: &mut GdMut<'_, Player>, actions: i32) {
 
         let start = alien.get_current_room_index();
         let goal = player.get_current_room_index();
@@ -277,9 +326,19 @@ impl Gameplay {
             "Invalid item instruction".to_string()
             
         }
+        else if instruction.starts_with("pick_up_scrap") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                if let Ok(amount) = parts[1].parse::<i32>() {
+                    return format!("Pick up {} scrap tokens", amount);
+                }
+            }
+            "Invalid pick up scrap instruction".to_string()
+        }
         
         else {
-            "Unknown instruction".to_string()
+            format!("Unknown instruction \"{}\" ", instruction )
+           
         }
     }
 

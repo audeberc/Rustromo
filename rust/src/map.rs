@@ -6,6 +6,7 @@ struct Room {
     description: String,
     x: f32,
     y: f32,
+    scrap_tokens: i32, // Add scrap tokens to the room
 }
 
 #[derive(Debug, Clone)]
@@ -40,7 +41,7 @@ impl GameMap {
     // Adds a new room and returns its index
     #[func]
    pub fn add_room(&mut self, name: String, description: String, x: f32, y: f32) -> i32 {
-        self.rooms.push(Room { name, description, x, y });
+        self.rooms.push(Room { name, description, x, y, scrap_tokens: 0 });
         (self.rooms.len() - 1) as i32
     }
 
@@ -57,7 +58,7 @@ impl GameMap {
     #[func]
     pub fn get_room_info(&self, index: i32) -> String {
         if let Some(room) = self.rooms.get(index as usize) {
-            format!("Room: {}\n{}\nCoordinates: ({}, {})", room.name, room.description, room.x, room.y)
+            format!("Room: {} [{}]\nScrap Tokens in room: {}", room.name, room.description, room.scrap_tokens)
         } else {
             "Room not found".to_string()
         }
@@ -129,5 +130,29 @@ impl GameMap {
         }
 
         result
+    }
+
+    pub fn add_scrap_to_room(&mut self, index: i32, amount: i32) {
+        if let Some(room) = self.rooms.get_mut(index as usize) {
+            room.scrap_tokens += amount;
+        }
+    }
+
+    pub fn remove_scrap_from_room(&mut self, index: i32, amount: i32) -> bool {
+        if let Some(room) = self.rooms.get_mut(index as usize) {
+            if room.scrap_tokens >= amount {
+                room.scrap_tokens -= amount;
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn get_scrap_tokens_in_room(&self, index: i32) -> i32 {
+        if let Some(room) = self.rooms.get(index as usize) {
+            room.scrap_tokens
+        } else {
+            0
+        }
     }
 }
