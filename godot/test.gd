@@ -4,6 +4,7 @@ var player
 var alien
 var map
 var label
+var player_label
 var room_options_container
 var selected_move_index = 0  
 var possible_movements = []  
@@ -22,7 +23,8 @@ func _ready():
 	alien = Player.new()
 	alien.initialize(100, 0, 4, 100.0) 
 	map = $GameMap  
-	label = $VBoxContainer2/Label   
+	label = $VBoxContainer2/HBox_room_info/room_info_label   
+	player_label = $VBoxContainer2/HBox_player_info2/player_info_label   
 	room_options_container = $VBoxContainer2/VBoxContainer
 	map_overlay = $MapBackground/MapOverlay
 	map_background = $MapBackground
@@ -42,13 +44,13 @@ func _ready():
 	var medical = map.add_room("Medical", "The medical bay of the ship.", 0.741,0.371)
 	var hub2_top_floor = map.add_room("Hub 2 Top Floor", "The top floor of Hub 2.",0.453, 0.371)
 	var barracks = map.add_room("Barracks", "Where the crew sleeps.", 0.213, 0.372)
-	var hallway1 = map.add_room("Hallway (Cockpit to Computer Room)", "A connecting hallway from Cockpit to Computer Room.", 0.290, 0.134)
-	var hallway2 = map.add_room("Hallway (Cockpit to Dinner Room)", "A connecting hallway from Cockpit to Dinner Room.", 0.290, 0.190)
-	var hallway3 = map.add_room("Hallway (Dinner Room to Hub 1 Top Floor)", "A connecting hallway from Dinner Room to Hub 1 Top Floor.", 0.594, 0.191)
-	var hallway4 = map.add_room("Hallway (Hub 1 Top Floor to Medical)", "A connecting hallway from Hub 1 Top Floor to Medical.",0.738, 0.280)
-	var hallway5 = map.add_room("Hallway (Medical to Hub 2 Top Floor)", "A connecting hallway from Medical to Hub 2 Top Floor.",0.592, 0.372)
-	var hallway6 = map.add_room("Hallway (Hub 2 Top Floor to Barracks)", "A connecting hallway from Hub 2 Top Floor to Barracks.",0.332, 0.372)
-	var hallway7 = map.add_room("Hallway (Hub 2 Top Floor to Airlock)", "A connecting hallway from Hub 2 Top Floor to Airlock.", 0.450, 0.463)
+	var hallway1 = map.add_room("Hallway Cockpit <-> Computer Room", "", 0.290, 0.134)
+	var hallway2 = map.add_room("Hallway Cockpit <-> Dinner Room", "", 0.290, 0.190)
+	var hallway3 = map.add_room("Hallway Dinner Room <-> Hub1 Top", "", 0.594, 0.191)
+	var hallway4 = map.add_room("Hallway Hub1 Top <-> Medical", "", 0.738, 0.280)
+	var hallway5 = map.add_room("Hallway Medical <-> Hub2 Top", "", 0.592, 0.372)
+	var hallway6 = map.add_room("Hallway Hub2 Top <-> Barracks", "", 0.332, 0.372)
+	var hallway7 = map.add_room("Hallway Hub2 Top <-> Airlock", "", 0.450, 0.463)
 	# Add rooms to the map - bottom floor- 
 	var hub1_bottom_floor = map.add_room("Hub 1 Bottom Floor", "The bottom floor of Hub 1.",0.736, 0.692)
 	var engines = map.add_room("Engines room", "The engines control room.",0.918, 0.695)
@@ -56,12 +58,10 @@ func _ready():
 	var storage = map.add_room("Storage", "Storage room of the ship.",0.215, 0.874 )
 	var ladder_1 = map.add_room("Ladder 1", "Ladder of Hub 1.", 0.908, 0.441)
 	var ladder_2 = map.add_room("Ladder 2", "Ladder of Hub 2.", 0.557, 0.627)
-	var hallway8 = map.add_room("Hallway (Hub 1 Bottom Floor to Engines)", "A connecting hallway from Hub 1 Bottom Floor to Engines.",0.839, 0.691)
-	var hallway9 = map.add_room("Hallway (Hub 1 Bottom Floor to Lair)", "A connecting hallway from Hub 1 Bottom Floor to Lair.", 0.735, 0.776)
-	var hallway10 = map.add_room("Hallway (Lair to Hub 2 Bottom Floor)", "A connecting hallway from Lair to Hub 2 Bottom Floor.", 0.581, 0.872)
-	var hallway11 = map.add_room("Hallway (Hub 2 Bottom Floor to Storage)", "A connecting hallway from Hub 2 Bottom Floor to Storage.", 0.340, 0.874)
-	
-	
+	var hallway8 = map.add_room("Hallway Hub1 Bottom <-> Engines", "", 0.839, 0.691)
+	var hallway9 = map.add_room("Hallway Hub1 Bottom <-> Lair", "", 0.735, 0.776)
+	var hallway10 = map.add_room("Hallway Lair <-> Hub2 Bottom", "", 0.581, 0.872)
+	var hallway11 = map.add_room("Hallway Hub2 Bottom <-> Storage", "", 0.340, 0.874)
 	# Connect rooms through hallways
 	map.connect_rooms(cockpit, hallway1)
 	map.connect_rooms(hallway1, computer_room)
@@ -139,7 +139,7 @@ func display_room_info():
 	map_overlay.update_alien_coordinates(alien_room_coordinates[0], alien_room_coordinates[1])
 	# Display current room info
 	label.text = gameplay.create_room_info_text(map, player)
-	
+	player_label.text = gameplay.create_player_info_text(player)
 	# Get connected rooms and display as selectable options
 	possible_movements = gameplay.get_possible_movements(map, player, alien)
 

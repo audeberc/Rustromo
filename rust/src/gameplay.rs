@@ -86,16 +86,23 @@ impl Gameplay {
 
         movements
     }
-
     // Creates the text string for the current room info
     #[func]
     fn create_room_info_text(&self, map: Gd<GameMap>, player: Gd<Player>) -> String {
         let map = map.bind();
         let player = player.bind();
         let mut info = String::new();
-        info.push_str(&format!("Player's current room: {}\n", map.get_room_info(player.get_current_room_index())));
+        info.push_str(&format!("{}\n", map.get_room_info(player.get_current_room_index())));
+        info
+    }
+
+    // Creates the text string for the player's info
+    #[func]
+    fn create_player_info_text(&self, player: Gd<Player>) -> String {
+        let player = player.bind();
+        let mut info = String::new();
         info.push_str(&format!("Remaining actions: {}\n", player.get_remaining_actions()));
-        info.push_str(&format!("Morale: {}\n", player.get_morale()));
+        info.push_str(&format!("Morale: {} %\n", player.get_morale()));
         info.push_str(&format!("Scrap tokens: {}\n", player.get_scraps()));
 
         let items = player.get_items();
