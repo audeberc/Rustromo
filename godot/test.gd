@@ -16,6 +16,7 @@ var game_over_label
 var replay_button
 var game_over = false
 var map_background 
+var objectives_label
 
 func _ready():
 	player = Player.new()
@@ -32,6 +33,8 @@ func _ready():
 	gameplay = $Gameplay
 	game_over_label = $GameOverLabel
 	replay_button = $ReplayButton
+	objectives_label = $ObjectivesLabel
+	display_objectives()
 	
 	# Add rooms to the map - top floor- 
 	lair = map.add_room("Lair", "The monster is nesting here.",0.738, 0.875)
@@ -109,7 +112,7 @@ func _ready():
 	# Hide game over elements initially
 	game_over_label.visible = false
 	replay_button.visible = false
-	replay_button.connect("pressed", Callable(self, "_on_replay_button_pressed"))
+	#replay_button.connect("pressed", Callable(self, "_on_replay_button_pressed"))
 
 func _process(delta):
 	if game_over:
@@ -152,6 +155,7 @@ func display_room_info():
 		else:
 			room_label.add_theme_color_override("font_color", Color(0.177, 0.7, 0.168))
 		room_options_container.add_child(room_label)
+	display_objectives()
 
 # Change the currently selected room
 func change_selection(direction):
@@ -202,3 +206,7 @@ func reset_game():
 	var alien_room_coordinates = map.get_room_coordinates(alien.get_current_room_index())
 	map_overlay.update_current_room_coordinates(current_room_coordinates[0], current_room_coordinates[1])
 	map_overlay.update_alien_coordinates(alien_room_coordinates[0], alien_room_coordinates[1])
+	display_objectives()
+
+func display_objectives():
+	objectives_label.text = gameplay.get_objectives_text()

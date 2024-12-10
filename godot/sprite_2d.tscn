@@ -1,16 +1,16 @@
-[gd_scene load_steps=14 format=3 uid="uid://lg01vp1johb"]
+[gd_scene load_steps=15 format=3 uid="uid://lg01vp1johb"]
 
+[ext_resource type="Texture2D" uid="uid://dltwcjwdt8g4" path="res://bg_frames/0001.png" id="1_8yld3"]
 [ext_resource type="Shader" path="res://CRT.gdshader" id="1_xgf11"]
 [ext_resource type="FontFile" uid="uid://djba61qq3kdxg" path="res://Berthold City Light Regular.otf" id="2_ja0dw"]
 [ext_resource type="Script" path="res://test.gd" id="2_twyg4"]
 [ext_resource type="Texture2D" uid="uid://dp4imunjqp083" path="res://test_map.png" id="3_kqntj"]
 [ext_resource type="Script" path="res://map_background.gd" id="3_mnldi"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_g1xu6"]
+[ext_resource type="Script" path="res://bg_switch.gd" id="7_72g70"]
 
 [sub_resource type="Theme" id="Theme_xi50l"]
 default_font = ExtResource("2_ja0dw")
-default_font_size = 40
+default_font_size = 30
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_laehm"]
 content_margin_left = 10.0
@@ -28,19 +28,20 @@ border_color = Color(0.176471, 0.701961, 0.168627, 1)
 default_font = ExtResource("2_ja0dw")
 default_font_size = 40
 
+[sub_resource type="Theme" id="Theme_370by"]
+default_font = ExtResource("2_ja0dw")
+default_font_size = 100
+
 [sub_resource type="Theme" id="Theme_7eoom"]
 default_base_scale = 1.8
 default_font = ExtResource("2_ja0dw")
 default_font_size = 300
 /colors/AAA = Color(0, 0, 0, 1)
 
-[sub_resource type="Theme" id="Theme_370by"]
-default_font = ExtResource("2_ja0dw")
-default_font_size = 100
-
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_fqiiy"]
+resource_local_to_scene = true
 shader = ExtResource("1_xgf11")
-shader_parameter/resolution = Vector2(1500, 1500)
+shader_parameter/resolution = Vector2(1750, 950)
 shader_parameter/scan_line_amount = 0.874
 shader_parameter/warp_amount = 0.5
 shader_parameter/noise_amount = 0.035
@@ -54,114 +55,125 @@ shader_parameter/roll_line_amount = 0.3
 shader_parameter/roll_speed = 1.0
 shader_parameter/scan_line_strength = -4.304
 shader_parameter/pixel_strength = -1.648
-shader_parameter/glow_intensity = 1.3
+shader_parameter/glow_intensity = 1.1
 shader_parameter/glow_threshold = 0.17
 shader_parameter/blur_amount = 5.0
 
-[sub_resource type="ViewportTexture" id="ViewportTexture_1uty1"]
-viewport_path = NodePath("SubViewportContainer/SubViewport")
+[sub_resource type="ViewportTexture" id="ViewportTexture_0lwib"]
+viewport_path = NodePath("Container/SubViewport2")
 
 [node name="Control2" type="Control"]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 0
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
-material = SubResource("ShaderMaterial_g1xu6")
-custom_minimum_size = Vector2(2304, 1236)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
+[node name="Container" type="SubViewportContainer" parent="."]
+layout_mode = 0
+offset_left = 403.0
+offset_top = 386.0
+offset_right = 2153.0
+offset_bottom = 1364.0
 
-[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+[node name="SubViewport2" type="SubViewport" parent="Container"]
 transparent_bg = true
 handle_input_locally = false
-size = Vector2i(2304, 1236)
+size = Vector2i(1750, 980)
+size_2d_override_stretch = true
 render_target_update_mode = 4
 
-[node name="Control" type="Control" parent="SubViewportContainer/SubViewport"]
+[node name="ColorRect" type="ColorRect" parent="Container/SubViewport2"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0162012, 0.0847526, 0.0288808, 1)
+
+[node name="Control" type="Control" parent="Container/SubViewport2"]
 z_index = 1
 layout_mode = 3
-anchors_preset = 0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("2_twyg4")
 
-[node name="Gameplay" type="Gameplay" parent="SubViewportContainer/SubViewport/Control"]
+[node name="Gameplay" type="Gameplay" parent="Container/SubViewport2/Control"]
 
-[node name="GameMap" type="GameMap" parent="SubViewportContainer/SubViewport/Control"]
+[node name="GameMap" type="GameMap" parent="Container/SubViewport2/Control"]
 
-[node name="VBoxContainer2" type="VBoxContainer" parent="SubViewportContainer/SubViewport/Control"]
+[node name="VBoxContainer2" type="VBoxContainer" parent="Container/SubViewport2/Control"]
 clip_contents = true
-custom_minimum_size = Vector2(1300, 1100)
 layout_mode = 2
 offset_left = 78.0
 offset_top = 87.0
-offset_right = 1378.0
-offset_bottom = 1187.0
+offset_right = 292.0
+offset_bottom = 215.0
 
-[node name="HBox_room_info" type="HBoxContainer" parent="SubViewportContainer/SubViewport/Control/VBoxContainer2"]
+[node name="HBox_room_info" type="HBoxContainer" parent="Container/SubViewport2/Control/VBoxContainer2"]
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="room_info_label" type="Label" parent="SubViewportContainer/SubViewport/Control/VBoxContainer2/HBox_room_info"]
+[node name="room_info_label" type="Label" parent="Container/SubViewport2/Control/VBoxContainer2/HBox_room_info"]
 layout_mode = 2
 theme = SubResource("Theme_xi50l")
 theme_override_colors/font_color = Color(0.176867, 0.7, 0.168, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_laehm")
 text = "TEST TEST TEST"
 
-[node name="HBox_player_info2" type="HBoxContainer" parent="SubViewportContainer/SubViewport/Control/VBoxContainer2"]
+[node name="HBox_player_info2" type="HBoxContainer" parent="Container/SubViewport2/Control/VBoxContainer2"]
 layout_mode = 2
 size_flags_horizontal = 0
 
-[node name="player_info_label" type="Label" parent="SubViewportContainer/SubViewport/Control/VBoxContainer2/HBox_player_info2"]
+[node name="player_info_label" type="Label" parent="Container/SubViewport2/Control/VBoxContainer2/HBox_player_info2"]
 layout_mode = 2
 theme = SubResource("Theme_xi50l")
 theme_override_colors/font_color = Color(0.176867, 0.7, 0.168, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_laehm")
 text = "TEST TEST TEST"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SubViewportContainer/SubViewport/Control/VBoxContainer2"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Container/SubViewport2/Control/VBoxContainer2"]
 layout_mode = 2
 size_flags_vertical = 6
 theme = SubResource("Theme_mrlvi")
 alignment = 1
 
-[node name="MapBackground" type="TextureRect" parent="SubViewportContainer/SubViewport/Control"]
-custom_minimum_size = Vector2(10, 0)
+[node name="MapBackground" type="TextureRect" parent="Container/SubViewport2/Control"]
 layout_mode = 1
-offset_left = 1686.0
-offset_top = 340.0
-offset_right = 2238.0
-offset_bottom = 1178.0
+offset_left = 1300.0
+offset_top = 300.0
+offset_right = 1714.0
+offset_bottom = 928.5
 texture = ExtResource("3_kqntj")
 expand_mode = 1
 
-[node name="MapOverlay" type="Control" parent="SubViewportContainer/SubViewport/Control/MapBackground"]
+[node name="MapOverlay" type="Control" parent="Container/SubViewport2/Control/MapBackground"]
 layout_mode = 1
 anchors_preset = 0
 script = ExtResource("3_mnldi")
 
-[node name="GameOverLabel" type="Label" parent="SubViewportContainer/SubViewport/Control"]
+[node name="ReplayButton" type="Button" parent="Container/SubViewport2/Control"]
 visible = false
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -715.82
-offset_top = -166.57
-offset_right = 722.18
-offset_bottom = 176.43
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 200.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_370by")
+text = "REPLAY"
+flat = true
+
+[node name="GameOverLabel" type="Label" parent="Container/SubViewport2/Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_7eoom")
@@ -171,39 +183,38 @@ text = "GAME OVER"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ReplayButton" type="Button" parent="SubViewportContainer/SubViewport/Control"]
-visible = false
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -158.5
-offset_top = 182.0
-offset_right = 158.5
-offset_bottom = 305.0
-grow_horizontal = 2
-grow_vertical = 2
-theme = SubResource("Theme_370by")
-text = "REPLAY"
-
-[node name="ColorRect" type="ColorRect" parent="SubViewportContainer/SubViewport"]
-custom_minimum_size = Vector2(1152, 618)
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.0162012, 0.0847526, 0.0288808, 1)
+[node name="ObjectivesLabel" type="Label" parent="Container/SubViewport2/Control"]
+layout_mode = 0
+offset_left = 880.0
+offset_top = 72.0
+offset_right = 1725.0
+offset_bottom = 223.0
+theme = SubResource("Theme_xi50l")
+theme_override_colors/font_color = Color(0.176867, 0.7, 0.168, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_laehm")
+text = "TEST TEST TEST"
+clip_text = true
 
 [node name="SubViewport" type="TextureRect" parent="."]
-z_index = 1
 material = SubResource("ShaderMaterial_fqiiy")
-custom_minimum_size = Vector2(1152, 618)
-layout_mode = 0
-offset_right = 2304.0
-offset_bottom = 1236.0
-texture = SubResource("ViewportTexture_1uty1")
+custom_minimum_size = Vector2(1000, 618)
+layout_mode = 2
+anchor_right = 0.088
+anchor_bottom = 0.087
+offset_left = 405.0
+offset_top = 364.0
+offset_right = 2167.0
+offset_bottom = 1346.0
+texture = SubResource("ViewportTexture_0lwib")
 
-[connection signal="pressed" from="SubViewportContainer/SubViewport/Control/ReplayButton" to="SubViewportContainer/SubViewport/Control" method="_on_replay_button_pressed"]
+[node name="TextureRect" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(2560, 1600)
+layout_mode = 1
+offset_right = 2560.0
+offset_bottom = 1600.0
+texture = ExtResource("1_8yld3")
+expand_mode = 2
+script = ExtResource("7_72g70")
+metadata/_edit_lock_ = true
+
+[connection signal="pressed" from="Container/SubViewport2/Control/ReplayButton" to="Container/SubViewport2/Control" method="_on_replay_button_pressed"]

@@ -1,5 +1,6 @@
 use godot::prelude::*;
 use std::collections::{HashMap, VecDeque};
+use crate::objectives::{Objectives, Objective};
 
 use crate::map::GameMap;
 use crate::player::Player;
@@ -9,13 +10,15 @@ use rand;
 #[class(base = Node)]
 struct Gameplay {
     base: Base<Node>,
+    objectives: Vec<Objective>,
 }
 
 #[godot_api]
 impl INode for Gameplay {
     fn init(base: Base<Node>) -> Self {
         godot_print!("Gameplay initialized");
-        Self { base }
+        let objectives = Objectives::new().objectives;
+        Self { base, objectives }
     }
 }
 
@@ -347,6 +350,42 @@ impl Gameplay {
             format!("Unknown instruction \"{}\" ", instruction )
            
         }
+    }
+
+    #[func]
+    fn get_objectives(&self) -> PackedStringArray {
+        let mut objectives_array = PackedStringArray::new();
+        for objective in &self.objectives {
+            let status = if objective.achieved { "Achieved" } else { "Not Achieved" };
+            let objective_str = format!(
+                "Objective: {}\nDescription: {}\nBring: {}\nAction: {}\nStatus: {}",
+                objective.place, objective.description, objective.bring_object, objective.action, status
+            );
+            objectives_array.push(&objective_str);
+        }
+        objectives_array
+    }
+
+    #[func]
+    fn achieve_objective(&mut self, index: i32) {
+        if let Some(objective) = self.objectives.get_mut(index as usize) {
+            objective.achieved = true;
+            godot_print!("Objective achieved: {}", objective.description);
+        }
+    }
+
+    #[func]
+    fn get_objectives_text(&self) -> String {
+        let mut objectives_text = String::new();
+        for objective in &self.objectives {
+            let status = if objective.achieved { "✓" } else { "✗" };
+            let objective_str = format!(
+                "{} {}\n",
+                status, objective.description
+            );
+            objectives_text.push_str(&objective_str);
+        }
+        objectives_text
     }
 
 }
