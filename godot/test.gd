@@ -35,6 +35,7 @@ func _ready():
 	replay_button = $ReplayButton
 	objectives_label = $ObjectivesLabel
 	display_objectives()
+
 	
 	# Add rooms to the map - top floor- 
 	lair = map.add_room("Lair", "The monster is nesting here.",0.738, 0.875)
@@ -96,9 +97,10 @@ func _ready():
 	player.move_to_room(cockpit)
 	alien.move_to_room(lair)
 	
-	player.add_item('flamethrower', 1	)
+	player.add_item('flamethrower', 1	, "")
 		
-	player.add_item('flare', 2	)
+	player.add_item('flare', 2	, "")
+	gameplay.place_mission_objects(map)
 	# Display the initial room info
 	display_room_info()
 
@@ -206,6 +208,7 @@ func reset_game():
 	var alien_room_coordinates = map.get_room_coordinates(alien.get_current_room_index())
 	map_overlay.update_current_room_coordinates(current_room_coordinates[0], current_room_coordinates[1])
 	map_overlay.update_alien_coordinates(alien_room_coordinates[0], alien_room_coordinates[1])
+	gameplay.place_mission_objects(map)
 	display_objectives()
 
 func display_objectives():

@@ -68,15 +68,15 @@ anchors_preset = 0
 
 [node name="Container" type="SubViewportContainer" parent="."]
 layout_mode = 0
-offset_left = 403.0
-offset_top = 386.0
-offset_right = 2153.0
-offset_bottom = 1364.0
+offset_left = 496.0
+offset_top = 455.0
+offset_right = 2596.0
+offset_bottom = 1631.0
 
 [node name="SubViewport2" type="SubViewport" parent="Container"]
 transparent_bg = true
 handle_input_locally = false
-size = Vector2i(1750, 980)
+size = Vector2i(2100, 1176)
 size_2d_override_stretch = true
 render_target_update_mode = 4
 
@@ -142,10 +142,10 @@ alignment = 1
 
 [node name="MapBackground" type="TextureRect" parent="Container/SubViewport2/Control"]
 layout_mode = 1
-offset_left = 1300.0
-offset_top = 300.0
-offset_right = 1714.0
-offset_bottom = 928.5
+offset_left = 1450.0
+offset_top = 260.0
+offset_right = 1996.48
+offset_bottom = 1089.62
 texture = ExtResource("3_kqntj")
 expand_mode = 1
 
@@ -185,9 +185,9 @@ vertical_alignment = 1
 
 [node name="ObjectivesLabel" type="Label" parent="Container/SubViewport2/Control"]
 layout_mode = 0
-offset_left = 880.0
+offset_left = 1000.0
 offset_top = 72.0
-offset_right = 1725.0
+offset_right = 2000.0
 offset_bottom = 223.0
 theme = SubResource("Theme_xi50l")
 theme_override_colors/font_color = Color(0.176867, 0.7, 0.168, 1)
@@ -201,17 +201,22 @@ custom_minimum_size = Vector2(1000, 618)
 layout_mode = 2
 anchor_right = 0.088
 anchor_bottom = 0.087
-offset_left = 405.0
-offset_top = 364.0
-offset_right = 2167.0
-offset_bottom = 1346.0
+offset_left = 496.0
+offset_top = 451.0
+offset_right = 2596.0
+offset_bottom = 1627.0
 texture = SubResource("ViewportTexture_0lwib")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 custom_minimum_size = Vector2(2560, 1600)
 layout_mode = 1
-offset_right = 2560.0
-offset_bottom = 1600.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = 3072.0
+offset_bottom = 1920.0
+grow_horizontal = 2
+grow_vertical = 2
 texture = ExtResource("1_8yld3")
 expand_mode = 2
 script = ExtResource("7_72g70")

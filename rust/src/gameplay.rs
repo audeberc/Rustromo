@@ -1,8 +1,8 @@
 use godot::prelude::*;
 use std::collections::{HashMap, VecDeque};
 use crate::objectives::{Objectives, Objective};
+use crate::map::{GameMap, Item}; // Import Item
 
-use crate::map::GameMap;
 use crate::player::Player;
 use rand;
 
@@ -49,31 +49,37 @@ impl Gameplay {
                     let instruction = format!("move_to {}", room_index);
                     movements.push(&instruction);
                 }
-                let items = player.get_items();
-                for (key, _) in items.iter_shared() {
+                let items = player.get_item_slots();
+                godot_print!("Items: {:?}", items);
+                for item_dict in items.iter() {
+                    let item_name = item_dict.get("name").expect("Item name not found").to_string();
                     let alien_room = alien.get_current_room_index();
                     let player_room = player.get_current_room_index();
                     let distant_rooms = map.get_rooms_within_distance(player_room as usize, 1, 3);
 
-                    if key.to_string() == "flamethrower" {
+                    if item_name == "flamethrower" {
                         if distant_rooms.contains(&(alien_room as usize)) {
-                            let instruction = format!("use_item {}", key.to_string());
+                            let instruction = format!("use_item {}", item_name);
                             movements.push(&instruction);
                         }
-                    } else if key.to_string() == "flare" {
+                    } else if item_name == "flare" {
                         if distant_rooms.contains(&(alien_room as usize)) {
                             let alien_distant_rooms = map.get_rooms_within_distance(alien.get_current_room_index() as usize, 3, 3);
            
                             for room_index in alien_distant_rooms.iter() {
                                 // It would be stupid to drop the flare at your feet ? 
                                 if room_index != &(player_room as usize) {
-                                let instruction = format!("use_item {} {}", key.to_string(), room_index);
+                                let instruction = format!("use_item {} {}", item_name, room_index);
                                 movements.push(&instruction);}
                             }
                         }
                     } else {
-                        let instruction = format!("use_item {}", key.to_string());
-                        movements.push(&instruction);
+                        let room_limitation_name = item_dict.get("room_limitation_name").expect("Item name not found").to::<String>();
+                        godot_print!("Room limitation name: {}", room_limitation_name);
+                        if room_limitation_name == ""|| room_limitation_name == map.get_room_name(player_room) {
+                            let instruction = format!("use_item {}", item_name);
+                            movements.push(&instruction);
+                        }
                     }
                 }
                 // Add option to pick up scrap tokens
@@ -81,6 +87,12 @@ impl Gameplay {
                 let scrap_tokens = map.get_scrap_tokens_in_room(current_room_index);
                 if scrap_tokens > 0 {
                     let instruction = format!("pick_up_scrap {}", scrap_tokens);
+                    movements.push(&instruction);
+                }
+                // Add option to pick up items in the room
+                let room_objects = map.get_room_objects(current_room_index);
+                for object in room_objects.iter() {
+                    let instruction = format!("pick_up_item {}", object.name);
                     movements.push(&instruction);
                 }
             }
@@ -108,10 +120,12 @@ impl Gameplay {
         info.push_str(&format!("Morale: {} %\n", player.get_morale()));
         info.push_str(&format!("Scrap tokens: {}\n", player.get_scraps()));
 
-        let items = player.get_items();
+        let items = player.get_item_slots();
         info.push_str("Inventory:\n");
-        for (key, value) in items.iter_shared() {
-            info.push_str(&format!("{}: {} uses\n", key.to_string(), value.to_variant().to::<i32>()));
+        for item_dict in items.iter() {
+            let item_name = item_dict.get("name").expect("Item name not found").to::<String>();
+            let item_uses = item_dict.get("uses").expect("Item uses not found").to::<i32>();
+            info.push_str(&format!("{}: {} uses\n", item_name, item_uses));
         }
 
         info
@@ -119,7 +133,7 @@ impl Gameplay {
 
     // Handles the selected item based on the instruction provided by Godot
     #[func]
-    fn handle_selected_item(&self, mut map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) -> String {
+    fn handle_selected_item(&mut self, mut map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) -> String {
         let mut map = map.bind_mut();
         let mut player = player.bind_mut();
         let mut alien = alien.bind_mut();
@@ -138,7 +152,7 @@ impl Gameplay {
 
             // Place scrap tokens in the current room
             let scrap_amount_category = [1, 1, 1, 2, 2, 3];
-            let scrap_amount =  scrap_amount_category[rand::random::<usize>() % scrap_amount_category.len()];
+            let scrap_amount =  scrap_amount_category[rand::random::<usize>() % movement_range_categories.len()];
             
             map.add_scrap_to_room(player.get_current_room_index(), scrap_amount);
             godot_print!("Placed {} scrap tokens in room {}", scrap_amount, player.get_current_room_index());
@@ -178,10 +192,10 @@ impl Gameplay {
         else if instruction.starts_with("use_item") {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
-                self.use_item(&mut player, &mut alien, parts[1].to_string(), None);
+                self.use_item(&mut player, &mut alien, parts[1].to_string(), None, &mut map);
             } else if parts.len() == 3 {
                 if let Ok(room_index) = parts[2].parse::<usize>() {
-                    self.use_item(&mut player, &mut alien, parts[1].to_string(), Some(room_index));
+                    self.use_item(&mut player, &mut alien, parts[1].to_string(), Some(room_index), &mut map);
                 }
             }
             player.decrease_remaining_actions(1); // Remove 1 act by using item
@@ -202,14 +216,35 @@ impl Gameplay {
                 }
             }
         }
+        else if instruction.starts_with("pick_up_item") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                let item_name = parts[1];
+                let current_room_index = player.get_current_room_index();
+                let room_item = map.get_room_objects(current_room_index);
+                if let Some(item) = room_item.iter().find(|item| item.name == item_name) {
+                 
+                    let room_limitation_name = item.room_limitation_name.clone();
+                    player.add_item(item_name.to_string(), 1, room_limitation_name);
+          
+                    player.decrease_remaining_actions(1);
+                    map.remove_object_from_room(current_room_index, item_name);
+                }
+            }
+        }
 
 
         "continue".to_string()
     }
 
-    fn use_item(&self, player: &mut GdMut<'_, Player>, alien: &mut GdMut<'_, Player>, item: String, room: Option<usize>) {
+    fn use_item(&mut self, player: &mut GdMut<'_, Player>, alien: &mut GdMut<'_, Player>, item: String, room: Option<usize>, map: &GdMut<GameMap>) {
         if player.get_remaining_actions() > 0 {
-            if let Some(uses) = player.get_item_uses_mut().get_mut(&item) {
+            if let Some(item_dict) = player.get_item_slots().iter().find(|dict| dict.get("name").expect("Item name not found").to_string() == item) {
+                let uses = item_dict.get("uses").expect("Item uses not found").to::<i32>();
+                let room_limitation_name = item_dict.get("room_limitation_name").expect("Room limitation name not found").to::<String>();
+                let current_room_index = player.get_current_room_index();
+                let current_room_name = map.get_room_name(current_room_index);
+
                 match item.as_str() {
                     "flamethrower" => {
                         alien.move_to_room(0); // Move alien to original spot
@@ -224,14 +259,25 @@ impl Gameplay {
                     _ => godot_print!("Unknown item"),
                 }
 
-                *uses -= 1;
-                godot_print!("Item uses left: {}", *uses);
-                if *uses <= 0 {
-                    player.get_item_uses_mut().remove(&item);
-                    player.get_item_slots_mut().retain(|i| i != &item);
+                if uses > 1 {
+                    let new_uses = uses - 1;
+                    player.drop_item(item.clone());
+                    player.add_item(item.clone(), new_uses, room_limitation_name.clone());
+                    godot_print!("Item uses left: {}", new_uses);
+                } else {
+                    player.drop_item(item.clone());
                     godot_print!("Item {} is out of uses and removed from inventory", item);
                 }
                 player.decrease_remaining_actions(1);
+
+                // Check if the item used completes an objective
+                let objectives = self.objectives.clone();
+                for (index, objective) in objectives.iter().enumerate() {
+                    if objective.bring_object == item && objective.place == current_room_name {
+                        self.achieve_objective(index as i32);
+                        godot_print!("Objective achieved: {}", objective.description);
+                    }
+                }
             } else {
                 godot_print!("Item not found in inventory");
             }
@@ -285,6 +331,20 @@ impl Gameplay {
             }
         }
     }
+    #[func]
+    fn place_mission_objects(&self, mut map: Gd<GameMap>) {
+        let mut map = map.bind_mut();
+        for objective in &self.objectives {
+            for spawn_object in &objective.objects_to_spawn {
+                let item = Item {
+                    name: spawn_object.object.clone(),
+                    room_limitation_name: spawn_object.place.clone(),
+                };
+                
+                map.add_object_to_room(&spawn_object.room, item);
+            }
+        }
+    }
 
     #[func]
     fn parse_instruction(&self, map: Gd<GameMap>, instruction: String) -> String {
@@ -320,22 +380,19 @@ impl Gameplay {
             if parts.len() == 2 {
                 if parts[1] == "flamethrower" {
                     return "Shoot the \"Flamethrower\" [Will scare the creature back to its lair]".to_string();
+                } else {
+                    return format!("Use item \"{}\"", parts[1]);
                 }
-
-                else {return format!("Use item \"{}\"", parts[1]);}
-                
-            }
-            else if parts.len() == 3 {
+            } else if parts.len() == 3 {
                 if parts[1] == "flare" {
                     let room_index = parts[2].parse::<usize>().unwrap();
                     let room_name = map.get_room_name(room_index.try_into().unwrap());
                     return format!("Use item \"Flare\" to room \"{}\"", room_name);
                 }
             }
-            
             "Invalid item instruction".to_string()
-            
         }
+        
         else if instruction.starts_with("pick_up_scrap") {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
@@ -346,24 +403,16 @@ impl Gameplay {
             "Invalid pick up scrap instruction".to_string()
         }
         
+        else if instruction.starts_with("pick_up_item") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                return format!("Pick up item \"{}\"", parts[1]);
+            }
+            "Invalid pick up item instruction".to_string()
+        }
         else {
             format!("Unknown instruction \"{}\" ", instruction )
-           
         }
-    }
-
-    #[func]
-    fn get_objectives(&self) -> PackedStringArray {
-        let mut objectives_array = PackedStringArray::new();
-        for objective in &self.objectives {
-            let status = if objective.achieved { "Achieved" } else { "Not Achieved" };
-            let objective_str = format!(
-                "Objective: {}\nDescription: {}\nBring: {}\nAction: {}\nStatus: {}",
-                objective.place, objective.description, objective.bring_object, objective.action, status
-            );
-            objectives_array.push(&objective_str);
-        }
-        objectives_array
     }
 
     #[func]
