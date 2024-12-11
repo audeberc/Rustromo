@@ -74,7 +74,7 @@ impl Gameplay {
                             }
                         }
                     } else {
-                        let room_limitation_name = item_dict.get("room_limitation_name").expect("Item name not found").to::<String>();
+                        let room_limitation_name = item_dict.get("room_limitation_name").expect("Item name not found").to::<String>();;
                         godot_print!("Room limitation name: {}", room_limitation_name);
                         if room_limitation_name == ""|| room_limitation_name == map.get_room_name(player_room) {
                             let instruction = format!("use_item {}", item_name);
@@ -146,7 +146,7 @@ impl Gameplay {
             player.end_turn(); // Reset actions for the next turn
             alien.end_turn();
             // Pick a random number of steps for the alien to take
-            let movement_range_categories = [1, 1, 1, 2, 2, 3];
+            let movement_range_categories = [1, 1, 2, 2, 2, 3];
             let steps = movement_range_categories[rand::random::<usize>() % movement_range_categories.len()];
             self.move_alien(&map, &mut player, &mut alien, steps);
 
@@ -272,8 +272,11 @@ impl Gameplay {
 
                 // Check if the item used completes an objective
                 let objectives = self.objectives.clone();
+
                 for (index, objective) in objectives.iter().enumerate() {
+                    godot_print!("Checking objective: {} {}", objective.bring_object, objective.place);
                     if objective.bring_object == item && objective.place == current_room_name {
+                        
                         self.achieve_objective(index as i32);
                         godot_print!("Objective achieved: {}", objective.description);
                     }

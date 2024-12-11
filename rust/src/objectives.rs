@@ -27,28 +27,28 @@ impl Objectives {
     pub fn new() -> Self {
         let objectives = vec![
             Objective {
-                place: "Engine Room".to_string(),
+                place: "Engines Room".to_string(),
                 description: "Fix the engine room with the wrench from storage".to_string(),
                 bring_object: "wrench".to_string(),
                 objects_to_spawn: vec![
                     SpawnObject {
                         room: "Storage".to_string(),
                         object: "wrench".to_string(),
-                        place: "Engines".to_string(), 
+                        place: "Engines room".to_string(), 
                     },
                 ],
                 action: "fix".to_string(),
                 achieved: false,
             },
             Objective {
-                place: "Cockpit".to_string(),
-                description: "Reboot the cockpit system with the keycard from storage".to_string(),
+                place: "Computer Room".to_string(),
+                description: "Reboot the Computer  with the keycard from Barracks".to_string(),
                 bring_object: "keycard".to_string(),
                 objects_to_spawn: vec![
                     SpawnObject {
-                        room: "Storage".to_string(),
+                        room: "Barracks".to_string(),
                         object: "keycard".to_string(),
-                        place: "Cockpit".to_string(),
+                        place: "Computer Room".to_string(),
                     },
                 ],
                 action: "reboot".to_string(),
@@ -56,6 +56,7 @@ impl Objectives {
             },
         ];
         Self { objectives }
+        
     }
 
     pub fn mark_as_achieved(&mut self, index: usize) {

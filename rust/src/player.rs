@@ -60,12 +60,10 @@ impl Player {
 
     #[func]
     pub fn add_item(&mut self, name: String, uses: i32, room_limitation_name: String) {
-        if self.item_slots.len() < 3 {
+
             let item = Item::new(name, uses, room_limitation_name);
             self.item_slots.push(item);
-        } else {
-            godot_print!("Cannot carry more than 3 items");
-        }
+        
     }
 
     #[func]
