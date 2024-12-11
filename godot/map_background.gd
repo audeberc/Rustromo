@@ -2,6 +2,7 @@ extends Control
 
 var room_coordinates = []
 var alien_coordinates = Vector2()
+var next_move_coordinates = Vector2(-1, -1)
 var pulse_radius = 12
 var pulse_direction = 1
 
@@ -30,6 +31,11 @@ func _draw():
 	var alien_y = alien_coordinates.y * size.y
 	draw_circle(Vector2(alien_x, alien_y), pulse_radius, Color(1, 0, 0))  # Draw a red pulsating circle
 
+	if next_move_coordinates != Vector2(-1, -1):
+		var next_x = next_move_coordinates.x * size.x
+		var next_y = next_move_coordinates.y * size.y
+		draw_circle(Vector2(next_x, next_y), 12, Color(1, 1, 0))  # Draw a yellow circle for the next move
+
 func update_room_coordinates(new_coordinates):
 	room_coordinates = new_coordinates
 	queue_redraw()  # Call queue_redraw to refresh the drawing
@@ -40,4 +46,8 @@ func update_current_room_coordinates(x, y):
 
 func update_alien_coordinates(x, y):
 	alien_coordinates = Vector2(x, y)
+	queue_redraw()  # Call queue_redraw to refresh the drawing
+
+func update_next_move_coordinates(x, y):
+	next_move_coordinates = Vector2(x, y)
 	queue_redraw()  # Call queue_redraw to refresh the drawing

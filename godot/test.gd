@@ -17,6 +17,7 @@ var replay_button
 var game_over = false
 var map_background 
 var objectives_label
+var next_move_coordinates = Vector2()
 
 func _ready():
 	player = Player.new()
@@ -148,6 +149,12 @@ func display_room_info():
 	# Get connected rooms and display as selectable options
 	possible_movements = gameplay.get_possible_movements(map, player, alien)
 
+	if possible_movements.size() > 0:
+		var movement_parts = possible_movements[selected_move_index].split(" ")
+		if movement_parts.size() > 1:
+			var next_room_index = int(movement_parts[1])
+			var next_room_coordinates = map.get_room_coordinates(next_room_index)
+			map_overlay.update_next_move_coordinates(next_room_coordinates[0], next_room_coordinates[1])
 
 	for i in range(possible_movements.size()):
 		var room_label = Label.new()
@@ -162,6 +169,12 @@ func display_room_info():
 # Change the currently selected room
 func change_selection(direction):
 	selected_move_index = wrap(selected_move_index + direction, 0, possible_movements.size())
+	if possible_movements.size() > 0:
+		var movement_parts = possible_movements[selected_move_index].split(" ")
+		if movement_parts.size() > 1:
+			var next_room_index = int(movement_parts[1])
+			var next_room_coordinates = map.get_room_coordinates(next_room_index)
+			map_overlay.update_next_move_coordinates(next_room_coordinates[0], next_room_coordinates[1])
 	display_room_info()  # Refresh display
 
 # Move the player to the selected room
@@ -169,6 +182,7 @@ func move_to_selected_room():
 	var result = gameplay.handle_selected_item(map, player, alien, possible_movements[selected_move_index])
 	if result == "game_over":
 		_on_game_over()
+	map_overlay.update_next_move_coordinates(-1, -1)  # Hide the next move indicator after moving
 	selected_move_index = 0
 	display_room_info()
 
