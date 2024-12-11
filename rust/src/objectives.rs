@@ -27,7 +27,7 @@ impl Objectives {
     pub fn new() -> Self {
         let objectives = vec![
             Objective {
-                place: "Engines Room".to_string(),
+                place: "Engines room".to_string(),
                 description: "Fix the engine room with the wrench from storage".to_string(),
                 bring_object: "wrench".to_string(),
                 objects_to_spawn: vec![
