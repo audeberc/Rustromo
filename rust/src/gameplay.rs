@@ -74,7 +74,7 @@ impl Gameplay {
                             }
                         }
                     } else {
-                        let room_limitation_name = item_dict.get("room_limitation_name").expect("Item name not found").to::<String>();;
+                        let room_limitation_name = item_dict.get("room_limitation_name").expect("Item name not found").to::<String>();
                         godot_print!("Room limitation name: {}", room_limitation_name);
                         if room_limitation_name == ""|| room_limitation_name == map.get_room_name(player_room) {
                             let instruction = format!("use_item {}", item_name);
@@ -133,7 +133,7 @@ impl Gameplay {
 
     // Handles the selected item based on the instruction provided by Godot
     #[func]
-    fn handle_selected_item(&self, mut map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) -> String {
+    fn handle_selected_item(&mut self, mut map: Gd<GameMap>, mut player: Gd<Player>, mut alien: Gd<Player>, instruction: String) -> String {
         let mut map = map.bind_mut();
         let mut player = player.bind_mut();
         let mut alien = alien.bind_mut();
@@ -192,10 +192,10 @@ impl Gameplay {
         else if instruction.starts_with("use_item") {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
-                self.use_item(&mut player, &mut alien, parts[1].to_string(), None);
+                self.use_item(&mut player, &mut alien, parts[1].to_string(), None, &mut map);
             } else if parts.len() == 3 {
                 if let Ok(room_index) = parts[2].parse::<usize>() {
-                    self.use_item(&mut player, &mut alien, parts[1].to_string(), Some(room_index));
+                    self.use_item(&mut player, &mut alien, parts[1].to_string(), Some(room_index), &mut map);
                 }
             }
             player.decrease_remaining_actions(1); // Remove 1 act by using item
@@ -237,10 +237,14 @@ impl Gameplay {
         "continue".to_string()
     }
 
-    fn use_item(&self, player: &mut GdMut<'_, Player>, alien: &mut GdMut<'_, Player>, item: String, room: Option<usize>) {
+    fn use_item(&mut self, player: &mut GdMut<'_, Player>, alien: &mut GdMut<'_, Player>, item: String, room: Option<usize>, map: &GdMut<GameMap>) {
         if player.get_remaining_actions() > 0 {
             if let Some(item_dict) = player.get_item_slots().iter().find(|dict| dict.get("name").expect("Item name not found").to_string() == item) {
                 let uses = item_dict.get("uses").expect("Item uses not found").to::<i32>();
+                let room_limitation_name = item_dict.get("room_limitation_name").expect("Room limitation name not found").to::<String>();
+                let current_room_index = player.get_current_room_index();
+                let current_room_name = map.get_room_name(current_room_index);
+
                 match item.as_str() {
                     "flamethrower" => {
                         alien.move_to_room(0); // Move alien to original spot
@@ -258,13 +262,22 @@ impl Gameplay {
                 if uses > 1 {
                     let new_uses = uses - 1;
                     player.drop_item(item.clone());
-                    player.add_item(item, new_uses, "".to_string());
+                    player.add_item(item.clone(), new_uses, room_limitation_name.clone());
                     godot_print!("Item uses left: {}", new_uses);
                 } else {
                     player.drop_item(item.clone());
                     godot_print!("Item {} is out of uses and removed from inventory", item);
                 }
                 player.decrease_remaining_actions(1);
+
+                // Check if the item used completes an objective
+                let objectives = self.objectives.clone();
+                for (index, objective) in objectives.iter().enumerate() {
+                    if objective.bring_object == item && objective.place == current_room_name {
+                        self.achieve_objective(index as i32);
+                        godot_print!("Objective achieved: {}", objective.description);
+                    }
+                }
             } else {
                 godot_print!("Item not found in inventory");
             }

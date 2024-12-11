@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use std::fs;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Objective {
     pub place: String,
     pub description: String,
@@ -11,7 +11,7 @@ pub struct Objective {
     pub achieved: bool,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct SpawnObject {
     pub room: String,
     pub object: String,
@@ -34,7 +34,7 @@ impl Objectives {
                     SpawnObject {
                         room: "Storage".to_string(),
                         object: "wrench".to_string(),
-                        place: "Engine Room".to_string(), 
+                        place: "Engines".to_string(), 
                     },
                 ],
                 action: "fix".to_string(),
@@ -46,7 +46,7 @@ impl Objectives {
                 bring_object: "keycard".to_string(),
                 objects_to_spawn: vec![
                     SpawnObject {
-                        room: "Cockpit".to_string(),
+                        room: "Storage".to_string(),
                         object: "keycard".to_string(),
                         place: "Cockpit".to_string(),
                     },
