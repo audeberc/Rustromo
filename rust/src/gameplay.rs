@@ -1,8 +1,8 @@
 use godot::prelude::*;
 use std::collections::{HashMap, VecDeque};
 use crate::objectives::{Objectives, Objective};
+use crate::map::{GameMap, Item}; // Import Item
 
-use crate::map::GameMap;
 use crate::player::Player;
 use rand;
 
@@ -50,6 +50,7 @@ impl Gameplay {
                     movements.push(&instruction);
                 }
                 let items = player.get_item_slots();
+                godot_print!("Items: {:?}", items);
                 for item_dict in items.iter() {
                     let item_name = item_dict.get("name").expect("Item name not found").to_string();
                     let alien_room = alien.get_current_room_index();
@@ -73,8 +74,12 @@ impl Gameplay {
                             }
                         }
                     } else {
-                        let instruction = format!("use_item {}", item_name);
-                        movements.push(&instruction);
+                        let room_limitation_name = item_dict.get("room_limitation_name").expect("Item name not found").to::<String>();;
+                        godot_print!("Room limitation name: {}", room_limitation_name);
+                        if room_limitation_name == ""|| room_limitation_name == map.get_room_name(player_room) {
+                            let instruction = format!("use_item {}", item_name);
+                            movements.push(&instruction);
+                        }
                     }
                 }
                 // Add option to pick up scrap tokens
@@ -87,7 +92,7 @@ impl Gameplay {
                 // Add option to pick up items in the room
                 let room_objects = map.get_room_objects(current_room_index);
                 for object in room_objects.iter() {
-                    let instruction = format!("pick_up_item {}", object);
+                    let instruction = format!("pick_up_item {}", object.name);
                     movements.push(&instruction);
                 }
             }
@@ -216,12 +221,14 @@ impl Gameplay {
             if parts.len() == 2 {
                 let item_name = parts[1];
                 let current_room_index = player.get_current_room_index();
-                if map.remove_object_from_room(current_room_index, item_name) {
-                    player.add_item(item_name.to_string(), 1, "".to_string());
-                    godot_print!("Picked up item {}", item_name);
+                let room_item = map.get_room_objects(current_room_index);
+                if let Some(item) = room_item.iter().find(|item| item.name == item_name) {
+                 
+                    let room_limitation_name = item.room_limitation_name.clone();
+                    player.add_item(item_name.to_string(), 1, room_limitation_name);
+          
                     player.decrease_remaining_actions(1);
-                } else {
-                    godot_print!("Item not found in the room");
+                    map.remove_object_from_room(current_room_index, item_name);
                 }
             }
         }
@@ -316,8 +323,12 @@ impl Gameplay {
         let mut map = map.bind_mut();
         for objective in &self.objectives {
             for spawn_object in &objective.objects_to_spawn {
-                godot_print!("Placing object {} in room {}", spawn_object.object, spawn_object.room);
-                map.add_object_to_room(&spawn_object.room, &spawn_object.object);
+                let item = Item {
+                    name: spawn_object.object.clone(),
+                    room_limitation_name: spawn_object.place.clone(),
+                };
+                
+                map.add_object_to_room(&spawn_object.room, item);
             }
         }
     }
