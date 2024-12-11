@@ -97,9 +97,9 @@ func _ready():
 	player.move_to_room(cockpit)
 	alien.move_to_room(lair)
 	
-	player.add_item('flamethrower', 1	)
+	player.add_item('flamethrower', 1	, "")
 		
-	player.add_item('flare', 2	)
+	player.add_item('flare', 2	, "")
 	gameplay.place_mission_objects(map)
 	# Display the initial room info
 	display_room_info()

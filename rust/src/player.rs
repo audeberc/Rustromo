@@ -1,6 +1,6 @@
 use godot::prelude::*;
 use godot::classes::Node;
-use std::collections::HashMap;
+use crate::items::Item;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -8,8 +8,7 @@ pub struct Player {
     base: Base<Node>,
     actions_per_turn: i32,
     remaining_actions: i32,
-    item_slots: Vec<String>,
-    item_uses: HashMap<String, i32>,
+    item_slots: Vec<Item>,
     scraps: i32,
     current_room_index: i32,
     morale: f32,
@@ -25,8 +24,7 @@ impl INode for Player {
             base,
             actions_per_turn: 0,
             remaining_actions: 0,
-            item_slots: Vec::new(),    // No items initially
-            item_uses: HashMap::new(),
+            item_slots: Vec::new(),   
             scraps: 0,
             current_room_index: 0,
             morale: 0.0,
@@ -55,18 +53,16 @@ impl Player {
         self.scraps
     }
 
-
     #[func]
     pub fn end_turn(&mut self) {
-        godot_print!("Reseting turn");
         self.remaining_actions = self.actions_per_turn;
     }
 
     #[func]
-    pub fn add_item(&mut self, item: String, uses: i32) {
+    pub fn add_item(&mut self, name: String, uses: i32, room_limitation_name: String) {
         if self.item_slots.len() < 3 {
-            self.item_slots.push(item.clone());
-            self.item_uses.insert(item, uses);
+            let item = Item::new(name, uses, room_limitation_name);
+            self.item_slots.push(item);
         } else {
             godot_print!("Cannot carry more than 3 items");
         }
@@ -101,40 +97,24 @@ impl Player {
     }
 
     #[func]
-    pub fn drop_item(&mut self, item: String) {
-        if let Some(pos) = self.item_slots.iter().position(|x| *x == item) {
-            self.item_slots.remove(pos);
-            self.item_uses.remove(&item);
-            godot_print!("Dropped item: {}", item);
+    pub fn drop_item(&mut self, item_name: String) {
+        if let Some(pos) = self.item_slots.iter().position(|x| x.name == item_name) {
+            let removed_item = self.item_slots.remove(pos);
+            godot_print!("Dropped item: {}", removed_item.name);
         } else {
             godot_print!("Item not found in inventory");
         }
     }
 
     #[func]
-    pub fn get_items(&self) -> Dictionary {
-        let mut dict = Dictionary::new();
-        for (item, uses) in self.item_uses.iter() {
-            dict.insert(item.to_string(), *uses);
-        }
-        dict
-    }
-
-    #[func]
-    pub fn get_item_slots(&self) -> PackedStringArray {
-        let mut array = PackedStringArray::new();
-        for item in self.item_slots.iter() {
-            array.push(item);
-        }
-        array
-    }
-
-    pub fn get_item_uses_mut(&mut self) -> &mut HashMap<String, i32> {
-        &mut self.item_uses
-    }
-
-    pub fn get_item_slots_mut(&mut self) -> &mut Vec<String> {
-        &mut self.item_slots
+    pub fn get_item_slots(&self) -> Vec<Dictionary> {
+        self.item_slots.iter().map(|item| {
+            let mut dict = Dictionary::new();
+            dict.insert("name", item.name.to_variant());
+            dict.insert("uses", item.uses.to_variant());
+            dict.insert("room_limitation_name", item.room_limitation_name.to_variant());
+            dict
+        }).collect()
     }
 
     pub fn decrease_remaining_actions(&mut self, amount: i32) {

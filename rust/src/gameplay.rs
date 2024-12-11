@@ -49,30 +49,31 @@ impl Gameplay {
                     let instruction = format!("move_to {}", room_index);
                     movements.push(&instruction);
                 }
-                let items = player.get_items();
-                for (key, _) in items.iter_shared() {
+                let items = player.get_item_slots();
+                for item_dict in items.iter() {
+                    let item_name = item_dict.get("name").expect("Item name not found").to_string();
                     let alien_room = alien.get_current_room_index();
                     let player_room = player.get_current_room_index();
                     let distant_rooms = map.get_rooms_within_distance(player_room as usize, 1, 3);
 
-                    if key.to_string() == "flamethrower" {
+                    if item_name == "flamethrower" {
                         if distant_rooms.contains(&(alien_room as usize)) {
-                            let instruction = format!("use_item {}", key.to_string());
+                            let instruction = format!("use_item {}", item_name);
                             movements.push(&instruction);
                         }
-                    } else if key.to_string() == "flare" {
+                    } else if item_name == "flare" {
                         if distant_rooms.contains(&(alien_room as usize)) {
                             let alien_distant_rooms = map.get_rooms_within_distance(alien.get_current_room_index() as usize, 3, 3);
            
                             for room_index in alien_distant_rooms.iter() {
                                 // It would be stupid to drop the flare at your feet ? 
                                 if room_index != &(player_room as usize) {
-                                let instruction = format!("use_item {} {}", key.to_string(), room_index);
+                                let instruction = format!("use_item {} {}", item_name, room_index);
                                 movements.push(&instruction);}
                             }
                         }
                     } else {
-                        let instruction = format!("use_item {}", key.to_string());
+                        let instruction = format!("use_item {}", item_name);
                         movements.push(&instruction);
                     }
                 }
@@ -114,10 +115,12 @@ impl Gameplay {
         info.push_str(&format!("Morale: {} %\n", player.get_morale()));
         info.push_str(&format!("Scrap tokens: {}\n", player.get_scraps()));
 
-        let items = player.get_items();
+        let items = player.get_item_slots();
         info.push_str("Inventory:\n");
-        for (key, value) in items.iter_shared() {
-            info.push_str(&format!("{}: {} uses\n", key.to_string(), value.to_variant().to::<i32>()));
+        for item_dict in items.iter() {
+            let item_name = item_dict.get("name").expect("Item name not found").to::<String>();
+            let item_uses = item_dict.get("uses").expect("Item uses not found").to::<i32>();
+            info.push_str(&format!("{}: {} uses\n", item_name, item_uses));
         }
 
         info
@@ -144,7 +147,7 @@ impl Gameplay {
 
             // Place scrap tokens in the current room
             let scrap_amount_category = [1, 1, 1, 2, 2, 3];
-            let scrap_amount =  scrap_amount_category[rand::random::<usize>() % scrap_amount_category.len()];
+            let scrap_amount =  scrap_amount_category[rand::random::<usize>() % movement_range_categories.len()];
             
             map.add_scrap_to_room(player.get_current_room_index(), scrap_amount);
             godot_print!("Placed {} scrap tokens in room {}", scrap_amount, player.get_current_room_index());
@@ -211,11 +214,11 @@ impl Gameplay {
         else if instruction.starts_with("pick_up_item") {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
-                let item = parts[1];
+                let item_name = parts[1];
                 let current_room_index = player.get_current_room_index();
-                if map.remove_object_from_room(current_room_index, item) {
-                    player.add_item(item.to_string(), 1);
-                    godot_print!("Picked up item {}", item);
+                if map.remove_object_from_room(current_room_index, item_name) {
+                    player.add_item(item_name.to_string(), 1, "".to_string());
+                    godot_print!("Picked up item {}", item_name);
                     player.decrease_remaining_actions(1);
                 } else {
                     godot_print!("Item not found in the room");
@@ -229,7 +232,8 @@ impl Gameplay {
 
     fn use_item(&self, player: &mut GdMut<'_, Player>, alien: &mut GdMut<'_, Player>, item: String, room: Option<usize>) {
         if player.get_remaining_actions() > 0 {
-            if let Some(uses) = player.get_item_uses_mut().get_mut(&item) {
+            if let Some(item_dict) = player.get_item_slots().iter().find(|dict| dict.get("name").expect("Item name not found").to_string() == item) {
+                let uses = item_dict.get("uses").expect("Item uses not found").to::<i32>();
                 match item.as_str() {
                     "flamethrower" => {
                         alien.move_to_room(0); // Move alien to original spot
@@ -244,11 +248,13 @@ impl Gameplay {
                     _ => godot_print!("Unknown item"),
                 }
 
-                *uses -= 1;
-                godot_print!("Item uses left: {}", *uses);
-                if *uses <= 0 {
-                    player.get_item_uses_mut().remove(&item);
-                    player.get_item_slots_mut().retain(|i| i != &item);
+                if uses > 1 {
+                    let new_uses = uses - 1;
+                    player.drop_item(item.clone());
+                    player.add_item(item, new_uses, "".to_string());
+                    godot_print!("Item uses left: {}", new_uses);
+                } else {
+                    player.drop_item(item.clone());
                     godot_print!("Item {} is out of uses and removed from inventory", item);
                 }
                 player.decrease_remaining_actions(1);
