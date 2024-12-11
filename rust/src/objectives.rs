@@ -44,7 +44,7 @@ impl Objectives {
                 bring_object: "keycard".to_string(),
                 objects_to_spawn: vec![
                     SpawnObject {
-                        room: "Storage".to_string(),
+                        room: "Cockpit".to_string(),
                         object: "keycard".to_string(),
                     },
                 ],

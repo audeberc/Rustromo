@@ -7,6 +7,7 @@ struct Room {
     x: f32,
     y: f32,
     scrap_tokens: i32, // Add scrap tokens to the room
+    objects: Vec<String>, // Add objects to the room
 }
 
 #[derive(Debug, Clone)]
@@ -41,7 +42,7 @@ impl GameMap {
     // Adds a new room and returns its index
     #[func]
    pub fn add_room(&mut self, name: String, description: String, x: f32, y: f32) -> i32 {
-        self.rooms.push(Room { name, description, x, y, scrap_tokens: 0 });
+        self.rooms.push(Room { name, description, x, y, scrap_tokens: 0, objects: Vec::new() });
         (self.rooms.len() - 1) as i32
     }
 
@@ -154,5 +155,32 @@ impl GameMap {
         } else {
             0
         }
+    }
+
+    pub fn add_object_to_room(&mut self, room_name: &str, object: &str) {
+        if let Some(room) = self.rooms.iter_mut().find(|r| r.name == room_name) {
+            room.objects.push(object.to_string());
+        }
+        else {
+            godot_print!("Room not found");
+        }
+    }
+
+    pub fn get_room_objects(&self, index: i32) -> Vec<String> {
+        if let Some(room) = self.rooms.get(index as usize) {
+            room.objects.clone()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn remove_object_from_room(&mut self, index: i32, object: &str) -> bool {
+        if let Some(room) = self.rooms.get_mut(index as usize) {
+            if let Some(pos) = room.objects.iter().position(|x| x == object) {
+                room.objects.remove(pos);
+                return true;
+            }
+        }
+        false
     }
 }

@@ -83,6 +83,12 @@ impl Gameplay {
                     let instruction = format!("pick_up_scrap {}", scrap_tokens);
                     movements.push(&instruction);
                 }
+                // Add option to pick up items in the room
+                let room_objects = map.get_room_objects(current_room_index);
+                for object in room_objects.iter() {
+                    let instruction = format!("pick_up_item {}", object);
+                    movements.push(&instruction);
+                }
             }
             movements.push("end_turn");
         }
@@ -202,6 +208,20 @@ impl Gameplay {
                 }
             }
         }
+        else if instruction.starts_with("pick_up_item") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                let item = parts[1];
+                let current_room_index = player.get_current_room_index();
+                if map.remove_object_from_room(current_room_index, item) {
+                    player.add_item(item.to_string(), 1);
+                    godot_print!("Picked up item {}", item);
+                    player.decrease_remaining_actions(1);
+                } else {
+                    godot_print!("Item not found in the room");
+                }
+            }
+        }
 
 
         "continue".to_string()
@@ -285,6 +305,16 @@ impl Gameplay {
             }
         }
     }
+    #[func]
+    fn place_mission_objects(&self, mut map: Gd<GameMap>) {
+        let mut map = map.bind_mut();
+        for objective in &self.objectives {
+            for spawn_object in &objective.objects_to_spawn {
+                godot_print!("Placing object {} in room {}", spawn_object.object, spawn_object.room);
+                map.add_object_to_room(&spawn_object.room, &spawn_object.object);
+            }
+        }
+    }
 
     #[func]
     fn parse_instruction(&self, map: Gd<GameMap>, instruction: String) -> String {
@@ -320,22 +350,19 @@ impl Gameplay {
             if parts.len() == 2 {
                 if parts[1] == "flamethrower" {
                     return "Shoot the \"Flamethrower\" [Will scare the creature back to its lair]".to_string();
+                } else {
+                    return format!("Use item \"{}\"", parts[1]);
                 }
-
-                else {return format!("Use item \"{}\"", parts[1]);}
-                
-            }
-            else if parts.len() == 3 {
+            } else if parts.len() == 3 {
                 if parts[1] == "flare" {
                     let room_index = parts[2].parse::<usize>().unwrap();
                     let room_name = map.get_room_name(room_index.try_into().unwrap());
                     return format!("Use item \"Flare\" to room \"{}\"", room_name);
                 }
             }
-            
             "Invalid item instruction".to_string()
-            
         }
+        
         else if instruction.starts_with("pick_up_scrap") {
             let parts: Vec<&str> = instruction.split_whitespace().collect();
             if parts.len() == 2 {
@@ -346,24 +373,16 @@ impl Gameplay {
             "Invalid pick up scrap instruction".to_string()
         }
         
+        else if instruction.starts_with("pick_up_item") {
+            let parts: Vec<&str> = instruction.split_whitespace().collect();
+            if parts.len() == 2 {
+                return format!("Pick up item \"{}\"", parts[1]);
+            }
+            "Invalid pick up item instruction".to_string()
+        }
         else {
             format!("Unknown instruction \"{}\" ", instruction )
-           
         }
-    }
-
-    #[func]
-    fn get_objectives(&self) -> PackedStringArray {
-        let mut objectives_array = PackedStringArray::new();
-        for objective in &self.objectives {
-            let status = if objective.achieved { "Achieved" } else { "Not Achieved" };
-            let objective_str = format!(
-                "Objective: {}\nDescription: {}\nBring: {}\nAction: {}\nStatus: {}",
-                objective.place, objective.description, objective.bring_object, objective.action, status
-            );
-            objectives_array.push(&objective_str);
-        }
-        objectives_array
     }
 
     #[func]
