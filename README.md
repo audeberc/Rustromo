@@ -1,6 +1,7 @@
 # Rustromo
 
 <img src="demo_gif.gif"  loop=infinite>
+
 ## Overview
 
 Rustromo is a small text-based game developed to train using Rust bindings (Gdext rust) in Godot 4. As the sole survivor on a ship overrun by a monster, you must navigate, evade, and find a way to escape.
